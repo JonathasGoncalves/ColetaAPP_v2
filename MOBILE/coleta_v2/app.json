@@ -1,0 +1,15 @@
+{
+  "name": "Coleta Selita",
+  "displayName": "Coleta Selita",
+  "expo": {
+    "name": "Coleta Selita",
+    "slug": "Coleta_Selita",
+    "version": "2.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  },
+  "platforms": [
+    "android"
+  ]
+}
