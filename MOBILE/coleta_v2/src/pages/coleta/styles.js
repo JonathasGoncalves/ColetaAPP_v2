@@ -147,9 +147,9 @@ const styles = StyleSheet.create({
   },
   ViewTotal: {
     flexDirection: 'row',
-    height: TOTAL_COLETADO_HEIGHT + 10,
+    height: TOTAL_COLETADO_HEIGHT,
     padding: MARGIN_PADRAO_LATERAL,
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     marginTop: MARGIN_PADRAO_VERTICAL_TITULOS,
     marginBottom: MARGIN_PADRAO_VERTICAL_TITULOS,
   },

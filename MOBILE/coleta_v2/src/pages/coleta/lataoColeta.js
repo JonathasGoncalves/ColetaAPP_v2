@@ -101,12 +101,9 @@ const LataoColeta = ({ salvar_total_coletadoOff, salvar_total_coletado_tanque, s
     //atualizando a quantidade coletda total
     total = calcularTotalColetado(coleta);
     salvar_total_coletado(total.total);
-    salvar_total_coletadoOff(total.totalOff);
     //atualizando a quantidade coletada do tanque 
     totalTanque = calcularTotalColetadoPorTanque(copyColeta, tanqueAtual.tanque);
     salvar_total_coletado_tanque(totalTanque.total);
-    salvar_total_coletadoOff_tanque(totalTanque.totalOff);
-
 
     navigation.dispatch(state => {
       const routes = state.routes.filter(r => r.name !== 'Home');

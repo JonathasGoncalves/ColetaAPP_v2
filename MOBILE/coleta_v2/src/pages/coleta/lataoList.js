@@ -14,9 +14,7 @@ import { calcularTotalColetadoPorTanque, calcularTotalColetado } from '../../fun
 const LataoList = ({
   totalColetadoOffTanque,
   totalColetadoTanque,
-  salvar_total_coletadoOff_tanque,
   salvar_total_coletado_tanque,
-  salvar_total_coletadoOff,
   salvar_total_coletado,
   save_latao, id_linha,
   coleta,
@@ -91,17 +89,15 @@ const LataoList = ({
     copyColeta[id_linha].coleta[indexTanque].lataoList[index].volume = 0;
     if (copyColeta[id_linha].coleta[indexTanque].volume == 0) {
       copyColeta[id_linha].coleta[indexTanque].cod_ocorrencia = '';
-      copyColeta[id_linha].coleta[indexTanque].observacao = '';
+      copyColeta[id_linha].coleta[indexTanque].complemento_obs = '';
     }
     save_coleta(copyColeta);
     //atualizando quantidade coletada total
     const total = calcularTotalColetado(copyColeta);
     salvar_total_coletado(total.total);
-    salvar_total_coletadoOff(total.totalOff);
     //atualizando a quantidade coletada do tanque 
     const totalTanque = calcularTotalColetadoPorTanque(copyColeta, tanqueAtual.tanque);
     salvar_total_coletado_tanque(totalTanque.total);
-    salvar_total_coletadoOff_tanque(totalTanque.totalOff);
     AsyncStorage.setItem('@coleta', JSON.stringify(copyColeta));
   }
 
@@ -154,10 +150,6 @@ const LataoList = ({
           <Text allowFontScaling={false} style={styles.textTotalColetado}>Coletado</Text>
           <Text allowFontScaling={false} style={styles.ValueTotalColetado}>{totalColetadoTanque}</Text>
         </View>
-        <View style={styles.viewTotalColetado}>
-          <Text allowFontScaling={false} style={styles.textTotalColetado}>Fora do Padrão</Text>
-          <Text allowFontScaling={false} style={styles.ValueTotalColetado}>{totalColetadoOffTanque}</Text>
-        </View>
       </View>
     </View>
   );
@@ -169,8 +161,6 @@ const mapStateToProps = state => ({
   cod_linha: state.Coleta.cod_linha,
   id_linha: state.Coleta.id_linha,
   totalColetado: state.Coleta.totalColetado,
-  totalColetadoOff: state.Coleta.totalColetadoOff,
-  totalColetadoOffTanque: state.Coleta.totalColetadoOffTanque,
   totalColetadoTanque: state.Coleta.totalColetadoTanque,
 });
 

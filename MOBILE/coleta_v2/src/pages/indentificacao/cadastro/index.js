@@ -95,23 +95,22 @@ const Cadastro = ({
         const motoristas = await api.post('api/transportadora/atualizar_motorista', {
           cod_transportadora: transportadora.data.COD_TRANSPORTADORA
         });
-
         //SET NO ASYNC
         //ADICIONANDO OS MOTORISTAS NO
         await AsyncStorage.setItem('@motoristas', JSON.stringify(motoristas.data));
         //criando array de placas para p picker de placas
         let placas_temp = [], i = 0;
         for (motorista_item of motoristas.data) {
-          placas_temp.push({ key: i, label: motorista_item.PLACA, CHAVE: motorista_item.CHAVE, COD_TRANSPORTADORA: motorista_item.COD_TRANSPORTADORA });
+          placas_temp.push({ key: i, label: motorista_item.placa, COD_TRANSPORTADORA: motorista_item.COD_TRANSPORTADORA });
           i++;
         }
         setPlacas(placas_temp);
-      } catch (erro) {
+      } catch (error) {
         Alert.alert(
-          'Erro',
-          erroMessage(erro),
+          error.errors.codigo[0],
+          error.message,
           [
-            { text: 'ok' },
+            { text: 'ok', onPress: () => sairErro() },
           ]
         );
       }
@@ -145,6 +144,10 @@ const Cadastro = ({
           cod_transportadora: motorista.COD_TRANSPORTADORA
         })
 
+        //retorna as observações do tanque
+        const responseObs = await api.get('api/coleta/RetornaObservacoes');
+
+
         let linhas = [];
         for (linhaItem of responseLinhas.data.linhas) {
           linhas.push(linhaItem.linha);
@@ -161,6 +164,7 @@ const Cadastro = ({
           await AsyncStorage.setItem('@linhas', JSON.stringify(linhas));
           await AsyncStorage.setItem('@linhasObj', JSON.stringify(responseLinhas.data.linhas));
           await AsyncStorage.setItem('@veiculo', JSON.stringify(motorista));
+          await AsyncStorage.setItem('@obs', JSON.stringify(responseObs.data.observacoes));
 
           //const hora = time();
           //const data = date();
@@ -181,10 +185,10 @@ const Cadastro = ({
       } catch (error) {
         await AsyncStorage.multiRemove(['@emAberto', '@coleta', '@linha', '@finalizado', '@veiculo']);
         Alert.alert(
-          'Erro',
-          'Não foi possivel recuperar as linhas, tente novamente!',
+          error.errors.codigo[0],
+          error.message,
           [
-            { text: 'ok' },
+            { text: 'ok', onPress: () => sairErro() },
           ]
         );
       }

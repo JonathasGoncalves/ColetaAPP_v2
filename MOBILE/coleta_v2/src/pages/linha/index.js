@@ -143,10 +143,6 @@ const Linha = ({
               <Text allowFontScaling={false} style={styles.textTotalColetado}>Coletado</Text>
               <Text allowFontScaling={false} style={styles.ValueTotalColetado}>{totalColetado}</Text>
             </View>
-            <View style={styles.viewTotalColetado}>
-              <Text allowFontScaling={false} style={styles.textTotalColetado}>Fora do Padrão</Text>
-              <Text allowFontScaling={false} style={styles.ValueTotalColetado}>{totalColetadoOff}</Text>
-            </View>
           </View>
 
         </View>

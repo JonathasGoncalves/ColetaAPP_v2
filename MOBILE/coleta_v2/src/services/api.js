@@ -46,7 +46,6 @@ api.interceptors.response.use(async function (response) {
   }
   return response;
 }, async function (error) {
-
   erroResponse = {};
   //modelo do objeto de erro
   /*
@@ -67,6 +66,7 @@ api.interceptors.response.use(async function (response) {
   }*/
 
   errorJson = error.toJSON();
+  console.log(error.response.data)
   if (errorJson.message == 'Request failed with status code 401' && errorJson.config.url != 'oauth/token') {
     const clientID = await AsyncStorage.getItem('@Client');
     const clientSecret = await AsyncStorage.getItem('@Secret');
@@ -91,15 +91,6 @@ api.interceptors.response.use(async function (response) {
       },
       "message": "Não autorizado."
     };
-  } else if (errorJson.message == 'Request failed with status code 404') {
-    erroResponse = {
-      "errors": {
-        "404": [
-          "O item requisitado não foi encontrado!"
-        ]
-      },
-      "message": "Não encontrado."
-    };
   } else if (errorJson.code == 'ECONNABORTED') {
     erroResponse = {
       "errors": {
@@ -110,7 +101,6 @@ api.interceptors.response.use(async function (response) {
       "message": "Timeout."
     };
   } else if (errorJson.message == 'Request failed with status code 500') {
-
     erroResponse = {
       "errors": {
         "500": [
@@ -128,23 +118,17 @@ api.interceptors.response.use(async function (response) {
       },
       "message": "Erro API"
     };
-  } else if (errorJson.message == 'Request failed with status code 400') {
-    erroResponse = {
-      "errors": {
-        "Timeout": [
-          "A requisição está incorreta!"
-        ]
-      },
-      "message": "Erro Request"
-    };
   } else {
+    codigo = error.response.data.titulo;
+    //console.log('error.response.data');
+    //console.log(error.response.data);
     erroResponse = {
       "errors": {
-        "Erro desconhecido": [
-          JSON.stringify(errorJson)
+        codigo: [
+          error.response.data.titulo
         ]
       },
-      "message": errorJson.message
+      "message": error.response.data.msg
     };
     return Promise.reject(erroResponse);
   }

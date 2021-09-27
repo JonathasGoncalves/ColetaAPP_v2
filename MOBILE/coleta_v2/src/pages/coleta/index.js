@@ -14,10 +14,7 @@ const Coleta = ({
   coleta,
   salvar_total_coletado,
   salvar_total_coletado_tanque,
-  salvar_total_coletadoOff_tanque,
-  salvar_total_coletadoOff,
   totalColetado,
-  totalColetadoOff,
   id_linha,
   cod_linha,
   navigation,
@@ -64,8 +61,8 @@ const Coleta = ({
           if (item.linha == cod_linha) {
             unicos.push({
               id: item.id,
-              codigo: item.codigo,
-              codigo_cacal: item.codigo_cacal,
+              //codigo: item.codigo,
+              //codigo_cacal: item.codigo_cacal,
               tanque: item.tanque,
               latao: item.latao,
               LINHA: item.linha,
@@ -78,11 +75,10 @@ const Coleta = ({
               temperatura: '',
               odometro: '',
               volume: 0,
-              volume_fora_padrao: 0,
+              complemento_obs: '',
               latitude: '',
               longitude: '',
               cod_ocorrencia: '',
-              observacao: '',
               boca: 1
             });
           }
@@ -104,6 +100,7 @@ const Coleta = ({
       unicos.map((tanqueUnico) => {
         let lataoArray = [];
         tanques_todos.map((tanqueList) => {
+
           if (tanqueList.tanque == tanqueUnico.tanque) {
             lataoObj = {
               latao: tanqueList.latao,
@@ -112,7 +109,10 @@ const Coleta = ({
               hora: '',
               dias_diff: tanqueList.dias_diff,
               ultima_coleta: tanqueList.ultima_coleta || "",
-              habilitado: tanqueList.habilitado
+              habilitado: tanqueList.habilitado,
+              tpfor: tanqueList.tpfor,
+              codigo: tanqueList.codigo,
+              codigo_cacal: tanqueList.codigo_cacal
             }
             lataoArray.push(lataoObj)
           }
@@ -178,7 +178,6 @@ const Coleta = ({
     //atualizando a quantidade coletada do tanque
     const totalTanque = calcularTotalColetadoPorTanque(coleta, tanque.tanque);
     salvar_total_coletado_tanque(totalTanque.total);
-    salvar_total_coletadoOff_tanque(totalTanque.totalOff);
     //alterar list para os latões
     save_tanque(tanque);
     AsyncStorage.setItem('@tanqueAtual', JSON.stringify(tanque));
@@ -213,15 +212,13 @@ const Coleta = ({
       var copyColeta = coleta;
 
       copyColeta[id_linha].coleta[index].cod_ocorrencia = '';
-      copyColeta[id_linha].coleta[index].observacao = '';
       copyColeta[id_linha].coleta[index].odometro = '';
       copyColeta[id_linha].coleta[index].volume = 0;
-      copyColeta[id_linha].coleta[index].volume_fora_padrao = 0;
+      copyColeta[id_linha].coleta[index].complemento_obs = '';
       copyColeta[id_linha].coleta[index].temperatura = '';
       copyColeta[id_linha].coleta[index].latitude = '';
       copyColeta[id_linha].coleta[index].longitude = '';
       copyColeta[id_linha].coleta[index].cod_ocorrencia = '';
-      copyColeta[id_linha].coleta[index].observacao = '';
       copyColeta[id_linha].coleta[index].lataoList.map((latao) => {
         latao.hora = '';
         latao.data = '';
@@ -231,14 +228,10 @@ const Coleta = ({
       save_coleta(copyColeta);
       AsyncStorage.setItem('@coleta', JSON.stringify(copyColeta));
       const total = calcularTotalColetado(copyColeta);
-      //setTotalColetado(total.total);
-      //setTotalColetadoOffState(total.totalOff);
       salvar_total_coletado(total.total);
-      salvar_total_coletadoOff(total.totalOff);
       //atualizando a quantidade coletada do tanque
       totalTanque = calcularTotalColetadoPorTanque(copyColeta, tanqueAtual);
       salvar_total_coletado_tanque(total.total);
-      salvar_total_coletadoOff_tanque(total.totalOff);
     }
 
     return (
@@ -294,10 +287,6 @@ const Coleta = ({
               <View style={styles.viewTotalColetado}>
                 <Text allowFontScaling={false} style={styles.textTotalColetado}>Coletado</Text>
                 <Text allowFontScaling={false} style={styles.ValueTotalColetado}>{totalColetado}</Text>
-              </View>
-              <View style={styles.viewTotalColetado}>
-                <Text allowFontScaling={false} style={styles.textTotalColetado}>Fora do Padrão</Text>
-                <Text allowFontScaling={false} style={styles.ValueTotalColetado}>{totalColetadoOff}</Text>
               </View>
             </View>
           </View>

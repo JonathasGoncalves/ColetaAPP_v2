@@ -2,19 +2,27 @@ import React, { useEffect, useState } from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import * as actionsIMEI from '../../store/actions/imeiActions';
-import { View, Text, ScrollView, TextInput, ActivityIndicator, Alert, NativeModules } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  TextInput,
+  ActivityIndicator,
+  Alert,
+  NativeModules,
+  PermissionsAndroid
+} from 'react-native';
 import { Button } from 'native-base';
 import styles from './style';
 import api from '../../services/api';
 import { BarCodeScanner } from 'expo-barcode-scanner';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { requestMultiple, PERMISSIONS } from 'react-native-permissions';
 import erroMessage from '../../functions/erroMessage';
 import { date, time } from '../../functions/tempo';
 
 const Habilitar = ({ save_user }) => {
 
-  const [hasPermission, setHasPermission] = useState(null);
+  const [hasPermission, setHasPermission] = useState(true);
   const [scanned, setScanned] = useState(false);
   const [acesso, setAcesso] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -26,9 +34,18 @@ const Habilitar = ({ save_user }) => {
     setLoading(true);
     async function verificar_permissoes() {
       try {
-        requestMultiple([PERMISSIONS.ANDROID.CAMERA, PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION, PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE]).then((statuses) => {
-          setHasPermission(statuses[PERMISSIONS.ANDROID.CAMERA] && statuses[PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION] && statuses[PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE] === 'granted');
-        });
+        const granted = await PermissionsAndroid.requestMultiple(
+          [
+            PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+            PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+            PermissionsAndroid.PERMISSIONS.CAMERA
+          ]
+        );
+        setHasPermission(
+          granted["android.permission.ACCESS_FINE_LOCATION"]
+          && granted["android.permission.CAMERA"]
+          && granted["android.permission.WRITE_EXTERNAL_STORAGE"] === 'granted'
+        );
       } catch (error) {
         Alert.alert(
           'Erro ao verificar permissões!',
@@ -131,10 +148,10 @@ const Habilitar = ({ save_user }) => {
       setAcesso(true);
     } catch (error) {
       Alert.alert(
-        'Erro ao Solicitar Acesso!',
-        erroMessage(error),
+        error.errors.codigo[0],
+        error.message,
         [
-          { text: 'ok' },
+          { text: 'ok', onPress: () => sairErro() },
         ]
       );
     }
@@ -145,7 +162,7 @@ const Habilitar = ({ save_user }) => {
     <View style={{ flex: 1 }}>
       {loading ? (
         <ActivityIndicator size="large" color='#F9690E' />
-      ) : hasPermission === false ? (
+      ) : !hasPermission ? (
         <Text allowFontScaling={false} style={styles.textDescPlaca}>As permissões são necessárias para o uso do aplicativo. Por favor reinicie o aplicativo e habilite as permissões!</Text>
       ) : !acesso ? (
         <View>
