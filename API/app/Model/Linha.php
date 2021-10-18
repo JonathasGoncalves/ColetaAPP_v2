@@ -20,13 +20,26 @@ class Linha extends Model
     }
 
     public function LinhasPorIMEI($TRANSPORTADORA_COD) {
-        $linhas = DB::table('linha_coleta')
-        ->join('tanques', DB::raw('tanques.linha collate utf8_unicode_ci'), '=', 'linha_coleta.COD')
-        ->select('linha_coleta.COD', 'linha_coleta.linha')
-        ->where('linha_coleta.TRANSPORTADORA_COD', '=', $TRANSPORTADORA_COD)
-        ->distinct()
-        ->orderBy('linha_coleta.COD')
-        ->get();
+        if ($TRANSPORTADORA_COD == '012336') {
+            //SELITA
+            $linhas = DB::table('linha_coleta')
+            ->join('tanques', DB::raw('tanques.linha collate utf8_unicode_ci'), '=', 'linha_coleta.COD')
+            ->select('linha_coleta.COD', 'linha_coleta.linha')
+            ->where('tanques.TPFOR', '<>', '')
+            ->distinct()
+            ->orderBy('linha_coleta.COD')
+            ->get();
+        } else {
+            $linhas = DB::table('linha_coleta')
+            ->join('tanques', DB::raw('tanques.linha collate utf8_unicode_ci'), '=', 'linha_coleta.COD')
+            ->select('linha_coleta.COD', 'linha_coleta.linha')
+            ->where('linha_coleta.TRANSPORTADORA_COD', '=', $TRANSPORTADORA_COD)
+            ->where('tanques.TPFOR', '<>', '')
+            ->distinct()
+            ->orderBy('linha_coleta.COD')
+            ->get();
+        }
+        
         return $linhas;
     }
     
@@ -34,6 +47,7 @@ class Linha extends Model
         $linhas = DB::table('linha_coleta')
         ->join('tanques', DB::raw('tanques.linha collate utf8_unicode_ci'), '=', 'linha_coleta.COD')
         ->select('linha_coleta.COD', 'linha_coleta.linha')
+        ->where('tanques.TPFOR', '<>', '')
         ->distinct()
         ->orderBy('linha_coleta.COD')
         ->get();

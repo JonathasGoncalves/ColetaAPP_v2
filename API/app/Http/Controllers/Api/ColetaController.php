@@ -10,7 +10,8 @@ use App\Model\Coleta;
 use App\Model\Motorista;
 use App\Model\ItemColeta;
 use App\Model\Ocorrencia;
-use App\Http\Resources\itemColetaResource;
+use App\Http\Resources\itemColetaResource; 
+use App\Http\Resources\itemColetaWorkflowResource;
 use Illuminate\Console\Scheduling\Schedule;
 use Artisan;
 use App\Http\Requests\coletaEmAbertoPorVeiculo;
@@ -28,37 +29,127 @@ class ColetaController extends Controller
 
     public function parametro_litros()
     {
-        return response()->json(40);
+        return response()->json(0);
+    }
+    
+    public function AtualizarVeiculo($veiculo, $transf)
+    {
+        $veiculo = $this->coleta->AtualizarVeiculo($veiculo, $transf);
+        return response()->json("Veiculo atualizado com sucesso!");
     }
 
     public function FinalizarColetaImport($coleta_veiculo, $coleta_carreta, $id_pesagem)
     {
-        $coleta = Coleta::whereIn('id', [$coleta_veiculo, $coleta_carreta])
-            ->update([
-                'id_pesagem' => $id_pesagem,
-                'finalizada' => 1,
-            ]);
-        if (!$coleta) return response()->json(ApiError::errorMassage(['data' => ['msg' => 'Coleta não encontrada!']], 4040), 404);
-        return response()->json($coleta);
+        //FINALIZA COLETA
+        if ($coleta_veiculo <> "0") {
+            $coleta = Coleta::where('id', $coleta_veiculo)->get();
+            Coleta::where('id', $coleta_veiculo)
+                ->update([
+                    'id_pesagem'        => $id_pesagem,
+                    'finalizada'        => 1,
+                ]);
+                
+                
+            //VERIFICA SE FICOU ALGUM ITEM PENDENTE DE IMPORTAÇÃO, SE SIM, CRIA NOVA COLETA PARA ELE
+            $coletas_pendentes_obj = $this->coleta->ItensPendentes($coleta_veiculo);
+            
+            if (count($coletas_pendentes_obj) > 0) {
+                $coleta_new = [
+                    'finalizada'            => '0',
+                    'placa'                 => $coleta[0]->placa,
+                    'data'                  => $coleta[0]->data,
+                    'odometroI'             => $coleta[0]->odometroI,
+                    'odometroF'             => $coleta[0]->odometroF,
+                    'id_pesagem'            => '',
+                ];
+                
+                $nova_coleta = Coleta::create($coleta_new);
+                ItemColeta::where('id_coleta', $coletas_pendentes_obj[0]->id)->where('importado', 'false')
+                ->update([
+                    'id_coleta'        => $nova_coleta->id,
+                ]);
+            }
+        }
+        
+        
+        
+        if ($coleta_carreta <> "0") {
+            //FINALIZA COLETA
+            $coleta = Coleta::where('id', $coleta_carreta)->get();
+             Coleta::where('id', $coleta_carreta)
+                ->update([
+                    'id_pesagem'        => $id_pesagem,
+                    'finalizada'        => 1,
+                ]);
+                
+            //VERIFICA SE FICOU ALGUM ITEM PENDENTE DE IMPORTAÇÃO, SE SIM, CRIA NOVA COLETA PARA ELE
+            $coletas_pendentes_obj = $this->coleta->ItensPendentes($coleta_carreta);
+            if (count($coletas_pendentes_obj) > 0) {
+                $coleta_new = [
+                    'finalizada'            => '0',
+                    'placa'                 => $coleta[0]->placa,
+                    'data'                  => $coleta[0]->data,
+                    'odometroI'             => $coleta[0]->odometroI,
+                    'odometroF'             => $coleta[0]->odometroF,
+                    'id_pesagem'            => '',
+                ];
+                $nova_coleta = Coleta::create($coleta_new);
+                ItemColeta::where('id_coleta', $coletas_pendentes_obj[0]->id)->where('importado', 'false')
+                ->update([
+                    'id_coleta'        => $nova_coleta->id,
+                ]);
+            }
+        }
+        
+        return response()->json("Coletas finalizadas com sucesso!");
+    }
+    
+    public function RecuperarTickets($coleta_veiculo, $coleta_carreta) {
+        $tickets = $this->coleta->TicketsItens([$coleta_veiculo, $coleta_carreta]);
+        $tickets_array = [];
+        foreach($tickets as $ticket) {
+            array_push($tickets_array, $ticket->ticket);
+        }
+        
+        $ticketsResp = ['tickets' => $tickets_array];
+        return response()->json($ticketsResp);
+        
+    }
+    
+    public function RecuperarLinha($coleta_veiculo, $coleta_carreta) {
+        $item = ItemColeta::whereIn('id_coleta', [$coleta_veiculo, $coleta_carreta])->first();
+        $Resp = ['tickets' => $item->LINHA];
+        return response()->json($Resp);
+        
     }
 
     public function EstornoColeta($id_pesagem)
     {
+        $coleta_estorno = Coleta::where('id_pesagem', $id_pesagem)->get();
         $coleta = Coleta::where('id_pesagem', '=', $id_pesagem)
             ->update([
                 'id_pesagem' => '',
                 'finalizada' => 0,
             ]);
-        if (!$coleta) return response()->json(ApiError::errorMassage(['data' => ['msg' => 'Coleta não encontrada!']], 4040), 404);
+        
+        $coletas_id = [];
+        
+        foreach ($coleta_estorno as $coleta) {
+            if ($coleta) {
+                array_push($coletas_id, $coleta->id);
+            }
+             
+        }
+            
+        $coleta_item = ItemColeta::whereIn('id_coleta', $coletas_id)
+            ->update([
+                'importado' => 'false',
+                'ticket'    => 'ticket'
+            ]);
+            
+            
+        if (!$coleta) return Response::json(['titulo' => 'Coleta inválida', 'msg' => 'Coleta não encontrada!'], 404);
         return response()->json($coleta);
-    }
-
-    public function coletaEmAberto()
-    {
-        $data = Coleta::where('finalizada', '=', 0)->get();
-        if (sizeof($data) < 1) return response()->json(ApiError::errorMassage(['data' => ['msg' => 'Nenhuma coleta em aberto']], 4040), 404);
-        $coletas = ['coletas' => $data];
-        return response()->json($coletas);
     }
 
     public function coletaEmAbertoPorMotorista(Request $request)
@@ -66,6 +157,19 @@ class ColetaController extends Controller
         $data = Coleta::where('finalizada', '=', 0)->where('placa', '=', $request->placa)->orderBy('data')->first();
         $coletas = ['coleta' => $data];
         return response()->json($coletas);
+    }
+    
+    public function volumeFornecedor($coleta_veiculo, $coleta_carreta)
+    {
+        $volume = 0;
+        $itens = ItemColeta::whereIn('id_coleta', [$coleta_veiculo, $coleta_carreta])->get();
+        foreach ($itens as $item_coleta) {
+            if ($item_coleta->tpfor == 'F') {
+                $volume += $item_coleta->volume;
+            }
+        }
+        $volumeResp = ['volume' => $volume];
+        return response()->json($volumeResp);
     }
 
      public function coletaEmAbertoPorPlaca($motorCod, $placa, $carreta)
@@ -83,12 +187,58 @@ class ColetaController extends Controller
         $coleta = ['coleta' => $coletas_id];
         return response()->json($coleta);
     }
+    
+     public function itensChale($placa, $carreta)
+    {
+        //{motorCod}/{placa}/{carreta} parametros da url
+        //(cAliasCab)->DATA, (cAliasCab)->HRENT, (cAliasCab)->VOLU, (cAliasCab)->PLACA, (cAliasCab)->MOTOR, (cAliasCab)->ROTA , (cAliasCab)->HRSAIDA}
+        $itens = $this->coleta->ItensChale([$placa, $carreta]);
+        if (count($itens) > 0 ) {
+            $volume = itemColetaWorkflowResource::collection($this->coleta->ItensChale([$placa, $carreta]));
+            $coleta = ['coleta' => $volume];
+            return response()->json($coleta);
+        } else {
+           return Response::json(['titulo' => 'Itens coleta', 'msg' => 'Nenhum item de coleta pendente encontrado!'], 404); 
+        }
+        
+    }
+    
+     public function coletaEmAbertoChale($placa, $carreta)
+    {
+        $coletas = $this->coleta->ColetaEmAbertoChale([$placa, $carreta]); 
+        
+        
+        //no maximo 2 coletas em aberto, uma para a placa da julieta e uma para o veiculo
+        $coletas_id = array();
+        //$coleta_placa = Coleta::where('finalizada', '=', 0)->whereIn('placa', ['MTC7995', 'AAH2297'])->where('placa', $placa)->orderBy('data', 'asc')->first();
+        //$coleta_carreta = Coleta::where('finalizada', '=', 0)->whereIn('placa', ['MTC7995', 'AAH2297'])->where('placa', $carreta)->orderBy('data', 'asc')->first();
+        //return response()->json($coletas);
+        foreach ($coletas as $coleta) {
+            if ($coleta) {
+                array_push($coletas_id, $coleta->id);
+            }
+             
+        }
+        $coleta = ['coleta' => $coletas_id];
+        
+        
+        
+        if (count($coletas_id) == 0 ) {
+            return Response::json(['titulo' => 'Coletas', 'msg' => 'Nenhuma coleta em aberto encontrada!'], 422);
+        } else {
+            $coleta_resp = ['coleta' => $coletas_id];
+            return response()->json($coleta_resp);
+        }
+       
+    }
+    
 
     public function NovaColeta(NovaColeta $request)
     {
+        
         $coleta = [
-            'finalizada'            => 0,
-            'placa          '       => $request->placa,
+            'finalizada'            => '0',
+            'placa'                 => $request->placa,
             'data'                  => $request->data,
             'odometroI'             => $request->odometroI,
             'odometroF'             => $request->odometroF,
@@ -98,7 +248,6 @@ class ColetaController extends Controller
         try {
             $nova_coleta = Coleta::create($coleta);
             return $nova_coleta;
-            //return $coleta;
         } catch (QueryException $e) {
             return $e;
         }
@@ -182,13 +331,33 @@ class ColetaController extends Controller
                 Ocorrencia::create($novo_item);
             }
         } catch (QueryException $e) {
-            return response()->json(ApiError::errorMassage(['data' => ['msg' => 'Erro ao gerar item para a coleta!']], 1010), 101);
+            return Response::json(['titulo' => 'Itens coleta', 'msg' => 'Erro ao gerar itens de coleta!'], 422);
         }
     }
 
-
+    public function marcarItens($coleta_veiculo, $coleta_carreta, $ticket, $funcao)
+    {
+        $itens = [];
+        if ($funcao == 'C') {
+            $itens = ItemColeta::whereIn('id_coleta', [$coleta_veiculo, $coleta_carreta])->where('importado', 'false')->where('tpfor', '<>', 'F')->get();
+        } else {
+            $itens = ItemColeta::whereIn('id_coleta', [$coleta_veiculo, $coleta_carreta])->where('importado', 'false')->get();
+        }
+        foreach($itens as $item) {
+           $coleta_item = ItemColeta::where('id', $item->id)
+                ->update([
+                    'importado' => 'true',
+                    'ticket'    => $ticket
+                ]); 
+        }
+        
+        return response()->json(['msg' => 'Itens marcados com sucesso'], 201);
+        
+    }
+    
+  
     //recebe o id da coleta
-    public function RetornaColetaPesagem($coleta_veiculo, $coleta_carreta)
+    public function RetornaColetaPesagem($coleta_veiculo, $coleta_carreta, $funcao)
     {
         //{coleta_veiculo}/{coleta_carreta} parametros da url
         /*
@@ -197,10 +366,17 @@ class ColetaController extends Controller
         000054 000000   000017  001769 00000000229 1634  3,00   1
         */
         
+        //se $funcao == C então é import do chalé, logo, não traz os itens de fornecedor
+        //fornecedor é importado na pesagem de saida comum
         $coletaAberta = Coleta::whereIn('id', [$coleta_veiculo, $coleta_carreta])->where('finalizada', '<>', '1')->get();
-        if (!$coletaAberta) return response()->json(ApiError::errorMassage(['data' => ['msg' => 'Coleta não encontrada!']], 4040), 404);
-        $itens = ItemColeta::whereIn('id_coleta', [$coleta_veiculo, $coleta_carreta])->get();
-        if (!$itens) return response()->json(ApiError::errorMassage(['data' => ['msg' => 'Sem itens para essa coleta!']], 4040), 404);
+        if (count($coletaAberta) == 0) return Response::json(['titulo' => 'Coleta inválida', 'msg' => 'Coleta não encontrada!'], 404);
+        if ($funcao == 'C') {
+            $itens = ItemColeta::whereIn('id_coleta', [$coleta_veiculo, $coleta_carreta])->where('importado', 'false')->where('tpfor', '<>', 'F')->get();
+        } else {
+            $itens = ItemColeta::whereIn('id_coleta', [$coleta_veiculo, $coleta_carreta])->where('importado', 'false')->get();
+        }
+        
+        if (!$itens) return Response::json(['titulo' => 'Itens Coleta', 'msg' => 'Nenhum item para esta coleta'], 404);
         //return $itens;
         $motorista = Motorista::where('placa', '=', $coletaAberta[0]->placa)->first();
         $novaData = str_replace('-', '', $coletaAberta[0]->data);
@@ -230,11 +406,12 @@ class ColetaController extends Controller
                     '1' .
                     $tpforEdit;
             }
+            
         }
 
         $arquivo = fopen('coletaItem.txt', 'w');
         if ($arquivo == false) {
-            return response()->json(ApiError::errorMassage(['data' => ['msg' => 'Erro ao gerar arquivo']], 1010), 101);
+            return Response::json(['titulo' => 'Arquivo coleta', 'msg' => 'Erro ao gerar arquivo'], 400);
         } else {
             fwrite($arquivo, $stringArquivo2);
             fclose($arquivo);
@@ -249,10 +426,8 @@ class ColetaController extends Controller
         Arquivo coordenadas
         tanque atualiza_coordenada latitude longitude
         */
-        $coletaAberta = Coleta::whereIn('id', [$coleta_veiculo, $coleta_carreta])->where('finalizada', '<>', '1')->get();
-        if (!$coletaAberta) return response()->json(ApiError::errorMassage(['data' => ['msg' => 'Coleta não encontrada!']], 4040), 404);
-        $itens = ItemColeta::whereIn('id_coleta', [$coleta_veiculo, $coleta_carreta])->get();
-        if (!$itens) return response()->json(ApiError::errorMassage(['data' => ['msg' => 'Sem itens para essa coleta!']], 4040), 404);
+        $itens = ItemColeta::whereIn('id_coleta', [$coleta_veiculo, $coleta_carreta])->where('importado', 'false')->where('latitude', '<>', '00000000000')->get();
+        if (!$itens) return Response::json(['titulo' => 'Itens Coleta', 'msg' => 'Sem itens para esta coleta'], 422);
         $stringArquivo = '';
         foreach ($itens as $item) {
             $stringArquivo =
@@ -260,10 +435,11 @@ class ColetaController extends Controller
                 $item->ATUALIZAR_COORDENADA .
                 $item->latitude .
                 $item->longitude .  "\n";
+              
         }
         $arquivo = fopen('coordenadaItem.txt', 'w');
         if ($arquivo == false) {
-            return response()->json(ApiError::errorMassage(['data' => ['msg' => 'Erro ao gerar arquivo']], 1010), 101);
+            return Response::json(['titulo' => 'Arquivo coordenada', 'msg' => 'Erro ao gerar arquivo'], 400);
         } else {
             fwrite($arquivo, $stringArquivo);
             fclose($arquivo);
@@ -276,12 +452,12 @@ class ColetaController extends Controller
     {
         /*
         Arquivo ocorrencias
-        linha tanque horario codigo_ocorrencia volume_fora_padrao observacoes 
+        linha tanque horario codigo_ocorrencia complemento_obs observacoes 
         */
         $coletaAberta = Coleta::whereIn('id', [$coleta_veiculo, $coleta_carreta])->where('finalizada', '<>', '1')->get();
-        if (!$coletaAberta) return response()->json(ApiError::errorMassage(['data' => ['msg' => 'Coleta fechada!']], 4040), 404);
-        $itens = ItemColeta::whereIn('id_coleta', [$coleta_veiculo, $coleta_carreta])->get();
-        if (!$itens) return response()->json(ApiError::errorMassage(['data' => ['msg' => 'Sem itens para essa coleta!']], 4040), 404);
+        if (!$coletaAberta) return Response::json(['Coletas' => 'Nenhuma coleta encontrada!', 'msg' => 'Erro ao gerar arquivo'], 400);
+        $itens = ItemColeta::whereIn('id_coleta', [$coleta_veiculo, $coleta_carreta])->where('importado', 'false')->where('cod_ocorrencia', '<>', null)->get();
+        if (!$itens) return Response::json(['titulo' => 'Itens coleta', 'msg' => 'Sem itens para esta coleta!'], 400);
         $stringArquivo = '';
         foreach ($itens as $item) {
             if ($item->cod_ocorrencia != '') {
@@ -293,14 +469,13 @@ class ColetaController extends Controller
                     $novaData .
                     $novaHora .
                     str_pad(trim($item->cod_ocorrencia), 3, '0', STR_PAD_LEFT) .
-                    str_pad(trim($item->volume_fora_padrao), 11, '0', STR_PAD_LEFT) .
-                    str_pad(trim($item->observacao), 256, ' ', STR_PAD_RIGHT) .
+                    str_pad(trim($item->complemento_obs), 256, ' ', STR_PAD_RIGHT) .
                     "\n";
             }
         }
         $arquivo = fopen('ocorrenciaItem.txt', 'w');
         if ($arquivo == false) {
-            return response()->json(ApiError::errorMassage(['data' => ['msg' => 'Erro ao gerar arquivo']], 1010), 101);
+            return Response::json(['titulo' => 'Arquivo Ocorrencia', 'msg' => 'Erro ao gerar arquivo'], 400);
         } else {
             fwrite($arquivo, $stringArquivo);
             fclose($arquivo);

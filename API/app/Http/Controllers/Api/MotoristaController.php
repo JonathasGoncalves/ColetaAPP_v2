@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\API\ApiError;
 use App\Model\Motorista;
 use App\Http\Requests\ValidarPlaca;
+use Illuminate\Support\Facades\Response;
 
 class MotoristaController extends Controller
 {
@@ -16,31 +17,34 @@ class MotoristaController extends Controller
         $this->motorista = $motorista;
     }
 
-    public function verificarPlaca(ValidarPlaca $request)
+    public function verificarPlaca(Request $request)
     {
         $data = Motorista::where('PLACA', '=', $request->placa)->first();
-        if (!$data) return response()->json(ApiError::errorMassage(['data' => ['msg' => 'Placa não encontrada!']], 404), 404);
+        if (!$data) return Response::json(['titulo' => 'Placa inválida', 'msg' => 'Placa não encontrada'], 400);
         $motorista = ['motorista' => $data];
         return response()->json($motorista);
     }
 
-    public function reboqueList(ValidarPlaca $request)
+    public function reboqueList(Request $request)
     {
         $data = Motorista::where('placa', '=', $request->placa)->first();
-        if (!$data) return response()->json(ApiError::errorMassage(['data' => ['msg' => 'A placa não foi encontrada!']], 4040), 404);
+        if (!$data) return Response::json(['titulo' => 'Placa inválida', 'msg' => 'A placa informada para reboque não foi encontrada!'], 400);
         return response()->json($data);
+    }
+    
+    //1=Nao;2=Sim
+    public function verificarPlacaTransferencia(Request $request)
+    {
+        $data = Motorista::where('PLACA', '=', $request->placa)->where('TRANSF', '2')->first();
+        if (!$data) return Response::json(['titulo' => 'Placa Inválida', 'msg' => 'Esta placa não pode transferir leite!'], 422);
+        $motorista = ['motorista' => $data];
+        return response()->json($motorista);
     }
 
     //recebe o cod_motorista e retorna os itens motorista
     public function atualizar_motorista(Request $request) {
-        /*
-        PRODU������O
-        $motoristas = Motorista::where('COD_TRANSPORTADORA', '=', $request->cod_transportadora)->OrderBy('placa')->get();
-        if (count($motoristas) == 0) return response()->json(ApiError::errorMassage(['data' => ['msg' => 'Nenhum registro encontrado!']], 4040), 404);
-        return response()->json($motoristas);
-        */
         $placas = $this->motorista->PlacasPorTransportadora($request->cod_transportadora);
-        if (count($placas) == 0) return response()->json(ApiError::errorMassage(['data' => ['msg' => 'Nenhum registro encontrado!']], 4040), 404);
+        if (count($placas) == 0) return Response::json(['titulo' => 'Motorista inválido', 'msg' => 'Motorista não encontrado!'], 400);
         return response()->json($placas);
     }
 }

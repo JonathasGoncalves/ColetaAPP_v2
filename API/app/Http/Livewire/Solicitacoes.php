@@ -6,6 +6,7 @@ use Livewire\Component;
 use App\Model\Solicitacao;
 use App\Model\Aparelho;
 use App\Model\Motorista;
+use App\Model\Coleta;
 use Illuminate\Support\Facades\Hash;
 use QrCode;
 use App\API\ApiError;
@@ -14,6 +15,7 @@ use Illuminate\Database\QueryException;
 class Solicitacoes extends Component
 {
     public $solicitacoes = [];
+    public $modo = "";
     public $solicitacao = [];
     public $selecionado = 0;
     public $motoristas = [];
@@ -25,14 +27,12 @@ class Solicitacoes extends Component
     public $aprovarBtn = false;
     public $erro = "";
     public $cont_pool = 0;
+    public $coletaAbertoObj;
 
     //INICIA O ARRAY DE SOLICITAÇÕES COM AS SOLICITAÇÕES EM ABERTO
-    public function mount()
+    public function mount(Coleta $coletaAbertoObj)
     {
-        $this->motoristas = [];
         $this->solicitacoes = Solicitacao::where('aprovado', 'false')->get();
-        //$this->solicitacao = [];
-        //$this->aprovado = false;
     }
 
     //VERIFICA SE O QRCODE FOI LIDO
@@ -159,6 +159,7 @@ class Solicitacoes extends Component
 
     public function render()
     {
-        return view('livewire.main');
+       return view('livewire.main');
     }
+
 }

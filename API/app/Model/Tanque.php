@@ -26,6 +26,7 @@ class Tanque extends Model
         ->select('tanques.id', 'todos.MUNICIPIO', 'tanques.tanque')
         ->where('tanques.linha', '=', $cod_linha)
         ->where('tanques.DT_DESLIG', '=', null)
+        ->where('tanques.TPFOR', '<>', '')
         ->joinSub($todos, 'todos', function ($join) {
             $join->on('tanques.codigo', '=', 'todos.codigo_cacal');
         })
@@ -48,6 +49,7 @@ class Tanque extends Model
         ->select('todos.codigo', 'todos.codigo_cacal', 'todos.nome', 'todos.MUNICIPIO', 'tanques.tanque', 'tanques.linha', 'tanques.latao')
         ->where('tanques.tanque', '=', $cod_tanque)
         ->where('tanques.DT_DESLIG', '=', null)
+        ->where('tanques.TPFOR', '<>', '')
         ->joinSub($todos, 'todos', function ($join) {
             $join->on('tanques.codigo', '=', 'todos.codigo_cacal');
         })
@@ -76,6 +78,7 @@ class Tanque extends Model
             )
         ->whereIn('tanques.linha', $linhas)
         ->where('tanques.DT_DESLIG', '=', null)
+        ->where('tanques.TPFOR', '<>', '')
         ->distinct();
 
         $coleta_data = DB::table('coleta_item')
@@ -86,7 +89,7 @@ class Tanque extends Model
             DB::raw(
                     'max(coleta_item.data) as ultima_coleta'
             ),
-            'coleta_item.latao',
+            'coleta_item.latao'
         )
         ->join('coleta', 'coleta_item.id_coleta', '=', 'coleta.id')
         ->where('coleta.finalizada', '=', 1)
@@ -97,7 +100,7 @@ class Tanque extends Model
         $LataoQuant = DB::table('tanques')
         ->select(
                 DB::raw(
-                    'count(*) as lataoQuant',
+                    'count(*) as lataoQuant'
                 ), 
                 //habilitado: 1 se os dias sem coleta forem válidos
                 //habilitado: 0 se os dias sem coleta forem inválidos
@@ -105,15 +108,15 @@ class Tanque extends Model
                     'CASE 
                         WHEN (MAX(coleta_data.dias_diff) < 0 OR MAX(coleta_data.dias_diff) IS NULL) THEN 1
                         WHEN MAX(coleta_data.dias_diff) > 2  THEN 0 
-                        ELSE 1 END AS habilitado',
+                        ELSE 1 END AS habilitado'
                 ),
                 DB::raw(
                     'CASE 
                         WHEN (MAX(coleta_data.dias_diff) < 0 OR MAX(coleta_data.dias_diff) IS NULL) THEN 0
-                        ELSE MAX(coleta_data.dias_diff) END AS dias_diff',
+                        ELSE MAX(coleta_data.dias_diff) END AS dias_diff'
                 ),
                 DB::raw(
-                    'MAX(coleta_data.ultima_coleta) as ultima_coleta',
+                    'MAX(coleta_data.ultima_coleta) as ultima_coleta'
                 ),
                 'tanquesList.id', 
                 'tanquesList.tanque', 
@@ -123,7 +126,7 @@ class Tanque extends Model
                 'tanquesList.codigo_cacal', 
                 'tanquesList.ATUALIZAR_COORDENADA',
                 'tanquesList.TPFOR',
-                'tanquesList.descricao',
+                'tanquesList.descricao'
         )
         ->joinSub($tanques, 'tanquesList', function ($join) {
             $join->on('tanques.tanque', '=', 'tanquesList.tanque');
@@ -134,6 +137,7 @@ class Tanque extends Model
         ->join('linha_coleta', DB::raw('tanques.linha collate utf8_unicode_ci'), '=', 'linha_coleta.COD')
         ->whereIn('tanques.linha', $linhas)
         ->where('tanques.DT_DESLIG', '=', null)
+        ->where('tanques.TPFOR', '<>', '')
         ->groupBy(
             'tanquesList.id',
             'tanquesList.tanque',

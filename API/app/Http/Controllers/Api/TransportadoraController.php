@@ -24,22 +24,16 @@ class TransportadoraController extends Controller
     public function verificarPlaca(ValidarPlaca $request)
     {
         $data = Motorista::where('PLACA', '=', $request->placa)->first();
-        if (!$data) return response()->json(ApiError::errorMassage(['data' => ['msg' => 'Placa não encontrada!']], 404), 404);
+        if (!$data) return Response::json(['titulo' => 'Placa inválida', 'msg' => 'Placa não encontrada!'], 400);
         $motorista = ['motorista' => $data];
         return response()->json($motorista);
     }
-
-    public function reboqueList(ValidarPlaca $request)
-    {
-        $data = Motorista::where('TPTANQ', '=', 'R')->where('PLACA', '=', $request->placa)->first();
-        if (!$data) return response()->json(ApiError::errorMassage(['data' => ['msg' => 'A placa não é um reboque!']], 4040), 404);
-        return response()->json($data);
-    }
     
+
     public function transportadora_motorista(Request $request)
     {
         $motorista = Motorista::where('COD_MOTORISTA', '=', $request->cod_motorista)->first();
-        if (!$motorista) return response()->json(ApiError::errorMassage(['data' => ['msg' => 'Transportadora não encontrada!']], 4040), 404);
+        if (!$motorista) return Response::json(['titulo' => 'Motorista inválido', 'msg' => 'Motorista não encontrado!'], 400);
         return response()->json($motorista);
     }
     

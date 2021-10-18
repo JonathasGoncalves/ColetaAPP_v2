@@ -18,6 +18,7 @@ class CreateColetaItemTable extends Migration
             $table->charset = 'utf8mb4';
             $table->increments('id');
             $table->integer('id_coleta');
+            $table->string('ticket')->nullable();
             $table->string('codigo');
             $table->string('codigo_cacal');
             $table->integer('tanque');
@@ -32,11 +33,11 @@ class CreateColetaItemTable extends Migration
             $table->string('latitude')->nullable();
             $table->string('longitude')->nullable();
             $table->string('cod_ocorrencia')->nullable();
-            $table->string('observacao')->nullable();
             $table->date('data');
             $table->time('hora');
             $table->integer('boca');
-            $table->integer('volume_fora_padrao');
+            $table->string('complemento_obs')->nullable();
+            $table->string('importado');
             $table->timestamps();
         });
     }

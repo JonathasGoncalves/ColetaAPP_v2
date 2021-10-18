@@ -25,7 +25,7 @@ class NovaColeta extends FormRequest
     {
         return [
             'data'                  => 'required',
-            'chave_motorista'         => 'required|exists:Motorista_Coleta,CHAVE',
+            'placa'                 => 'required|exists:Motorista_Coleta,PLACA',
             'odometroI'             => 'required',
             'odometroF'             => 'required',
         ];

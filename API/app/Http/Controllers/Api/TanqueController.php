@@ -25,4 +25,38 @@ class TanqueController extends Controller
         //return $this->tanque->TanquesInLinhas($request->linhas);
         return response()->json($data);
     }
+    
+    public function RetornaObservacoes()
+    {
+        $obs = [
+              [
+                'id' =>  1,
+                'descricao'  => 'IMP. DE ACESSO AO TANQUE',
+                'tipo'  =>'O',
+                'resposta'  => ''
+              ],
+              [
+                'id'  => 2,
+                'descricao'  => 'VOL. INSUF. MEDIDF.',
+                'tipo'  => 'O',
+                'resposta'  => ''
+              ],
+              [
+                'id' => 3,
+                'descricao'  => 'LEITE FORA DO PADRAO',
+                'tipo'  => 'D',
+                'resposta'  => ''
+              ],
+              [
+                'id'  => 4,
+                'descricao'  => 'OUTROS',
+                'tipo'  => 'D',
+                'resposta'  => ''
+              ]
+            ];
+        $data = ['observacoes' => $obs];
+        //return $this->tanque->TanquesInLinhas($request->linhas);
+        return response()->json($data);
+    }
+    
 }

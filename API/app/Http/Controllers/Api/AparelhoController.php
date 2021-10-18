@@ -30,7 +30,7 @@ class AparelhoController extends Controller
                 'habilitado' => 'true',
                 'password' => Hash::make($request->password)
             ]);
-        if (!$aparelho) return response()->json(ApiError::errorMassage(['data' => ['msg' => 'Aparelho nÃ£o encontrado!']], 4040), 404);
+        if (!$aparelho) return Response::json(['titulo' => 'Solicita«®«ªo Inv«¡lida', 'msg' => 'Nenhuma solicita«®«ªo encontrada para este aparelho!'], 422);
         $aparelho = Aparelho::where('uuid', '=', $request->uuid)->first();
         return response()->json($aparelho);
     }

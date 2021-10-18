@@ -14,10 +14,21 @@ use Illuminate\Support\Facades\Route;
 */
 //middleware(['auth:web'])->
 Route::middleware(['auth'])->namespace('Web')->group(function () {
-   //ROTA PARA TELA INICIAL (DEPOIS DO LOGIN A PRIMEIRA TELA JÁ É A LISTA DE SOLICITAÇÕES EM ABERTO)
+
+   //TELA DE MENU ENTRE OPÇÕES DE VISUALIZAÇÃO
+   Route::get('/menu', function () {
+      return View::make('layouts.menu');
+   })->name('controlador.menu');
+
+   //LISTAGEM DAS SOLICITAÇÕES
    Route::get('/solicitacoes', function () {
-      return View::make('layouts.list');
-   })->name('habilitar.solicitacoes');
+      return View::make('layouts.solicitacoes');
+   })->name('controlador.solicitacoes');
+
+   //LISTAGEM DOS COLETORES
+   Route::get('/coletores', function () {
+      return View::make('layouts.coletores');
+   })->name('controlador.coletores');
 });
 
 Route::namespace('Web')->group(function () {

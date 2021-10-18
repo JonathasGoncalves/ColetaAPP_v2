@@ -24,7 +24,7 @@ class ValidarPlaca extends FormRequest
     public function rules()
     {
         return [
-            'placa' => 'required|exists:transportadora,PLACA'
+            'placa' => 'required|exists:Motorista_Coleta,PLACA'
         ];
     }
 

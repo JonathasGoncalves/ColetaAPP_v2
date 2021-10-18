@@ -10,6 +10,7 @@ class ItemColeta extends Model
 
     protected $fillable = [
         'id_coleta',
+        'ticket',
         'codigo',
         'codigo_cacal',
         'tanque',
@@ -24,11 +25,11 @@ class ItemColeta extends Model
         'latitude',
         'longitude',
         'cod_ocorrencia',
-        'observacao',
         'data',
         'hora',
         'boca',
-        'volume_fora_padrao'
+        'complemento_obs',
+        'importado'
     ];
 
     
