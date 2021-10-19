@@ -10,11 +10,12 @@
     <li class="p-4 text-center  border-2 border-black border-r-0 border-t-0">{{$coletor->volume}}</li>
     <li class="p-4 text-center  border-2 border-black border-t-0">
       <div class="flex flex-row justify-evenly">
-        <button wire:click="abrir_coletor({{$coletor->id}})">
-          <i class="fas fas fa-search text-green-500"></i>
-        </button>
+        <a href="/coletor_detalhes/{{$coletor->id}}" class="icon-block">
+          <i class="fas fa-search text-green-500"></i>
+      </a>
+       
       </div> 
-    </li>
+    </li>  
     @endforeach
   </ul>
 </div>

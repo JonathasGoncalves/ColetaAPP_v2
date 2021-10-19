@@ -159,7 +159,8 @@ class Solicitacoes extends Component
 
     public function render()
     {
-       return view('livewire.main');
+      return view('livewire.main')
+            ->extends('layouts.solicitacoes');
     }
 
 }
