@@ -11,6 +11,7 @@ use App\Model\Motorista_Transportadora;
 use Illuminate\Database\QueryException;
 use App\API\ApiError;
 use App\Http\Requests\ValidarPlaca;
+use Illuminate\Support\Facades\Response;
 
 class TransportadoraController extends Controller
 {

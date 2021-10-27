@@ -57,9 +57,7 @@ class Menu extends Component
     public function render()
     {
          return view('livewire.menu')
-            ->extends('layouts.menu');
-
-         //return view('livewire.menu');
+            ->layout('layouts.menu');
     }
 
     public function abrir_coletor ($id_coletor) {

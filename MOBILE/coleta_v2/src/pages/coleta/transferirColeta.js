@@ -19,6 +19,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import erroMessage from '../../functions/erroMessage';
 import { NativeModules } from 'react-native';
 import { Header } from '@react-navigation/stack';
+import PlacaAberta from '../../functions/placaAberta';
 
 const Transferir = ({
   removerID,
@@ -27,7 +28,8 @@ const Transferir = ({
   horaI,
   navigation,
   save_coleta,
-  adicionar_horaF
+  adicionar_horaF,
+  veiculo
 }) => {
   const [loading, setLoading] = useState(false);
   const [odometro, setOdometro] = useState('');
@@ -314,40 +316,93 @@ const Transferir = ({
       const responseColetaEmAberto = await api.post('api/coleta/coletaEmAbertoPorMotorista', {
         placa: reboque.data.PLACA
       })
+
       if (responseColetaEmAberto.data.coleta) {
         novaColeta = responseColetaEmAberto.data.coleta;
+
+        coletaRequest = await arquivoLocal("", data, veiculo.label, odometroI, odometroF);
+        if (coletaRequest.length > 0) {
+          await api.post('api/coleta/NovaColetaCommitV2', {
+            data: data,
+            placa: reboque.data.PLACA,
+            odometroI: odometroI,
+            odometroF: odometroF,
+            coletas: coletaRequest,
+            coleta_id: novaColeta.id
+          })
+          await AsyncStorage.multiRemove(['@emAberto', '@coleta', '@linha', '@finalizado', '@veiculo']);
+          await AsyncStorage.setItem('@transmitir', 'false');
+          Alert.alert(
+            'Sucesso!',
+            'Coleta transferida!',
+            [
+              { text: 'ok', onPress: () => sair() },
+            ]
+          );
+        } else {
+          Alert.alert(
+            'Atenção!',
+            'Coleta vazia! O coletor será reiniciado!',
+            [
+              { text: 'ok', onPress: () => sair() },
+            ]
+          );
+        }
       } else {
-        const responseColeta = await api.post('api/coleta/NovaColeta', {
+        /*const responseColeta = await api.post('api/coleta/NovaColeta', {
           placa: reboque.data.PLACA,
           data: data,
           odometroI: odometroI,
           odometroF: odometroF
         })
-        novaColeta = responseColeta.data
+        novaColeta = responseColeta.data*/
+        coletaRequest = await arquivoLocal("", data, veiculo.label, odometroI, odometroF);
+        if (coletaRequest.length > 0) {
+          await api.post('api/coleta/NovaColetaCommitV2', {
+            data: data,
+            placa: reboque.data.PLACA,
+            odometroI: odometroI,
+            odometroF: odometroF,
+            coletas: coletaRequest,
+            coleta_id: '999999'
+          })
+          await AsyncStorage.multiRemove(['@emAberto', '@coleta', '@linha', '@finalizado', '@veiculo']);
+          await AsyncStorage.setItem('@transmitir', 'false');
+          Alert.alert(
+            'Sucesso!',
+            'Coleta transferida!',
+            [
+              { text: 'ok', onPress: () => sair() },
+            ]
+          );
+        } else {
+          await AsyncStorage.multiRemove(['@emAberto', '@coleta', '@linha', '@finalizado', '@veiculo']);
+          await AsyncStorage.setItem('@transmitir', 'false');
+          Alert.alert(
+            'Atenção!',
+            'Coleta vazia! O coletor será reiniciado!',
+            [
+              { text: 'ok', onPress: () => sair() },
+            ]
+          );
+        }
+
       }
-      coletaRequest = await arquivoLocal(novaColeta.id, data, reboque.data.PLACA, odometroI, odometroF);
-      await api.post('api/coleta/NovaColetaItem', {
+      //coletaRequest = await arquivoLocal(novaColeta.id, data, reboque.data.PLACA, odometroI, odometroF);
+      /*await api.post('api/coleta/NovaColetaItem', {
         coletas: coletaRequest
-      });
-      await AsyncStorage.multiRemove(['@emAberto', '@coleta', '@linha', '@finalizado', '@veiculo']);
-      await AsyncStorage.setItem('@transmitir', 'false');
-      Alert.alert(
-        'Sucesso!',
-        'Coleta transferida!',
-        [
-          { text: 'ok', onPress: () => sair() },
-        ]
-      );
+      });*/
+
     } catch (error) {
-      console.log(error)
+      //console.log(error)
       //HOUVE UM ERRO DE CONEXÃO, NESSE CASO, GERA UM VALOR ALEATÓRIO DE ID DA COLETA
       //E EM SEGUIDA SERÃO GERADOS OS OBJETOS BASEADOS NESSE ID E O RESULTADO SERÁ SALVO PARA SUBMISSÃO MANUAL
       await arquivoLocal(9999, data, placaState, odometroI, odometroF);
-      if (novaColeta.id) {
+      /*if (novaColeta.id) {
         await api.post('api/coleta/RemoverColeta', {
           id_coleta: novaColeta.id
         })
-      }
+      }*/
       Alert.alert(
         error.errors.codigo[0],
         error.message,
@@ -367,6 +422,7 @@ const Transferir = ({
 
   return (
     <Container>
+      <PlacaAberta placa={veiculo.label} />
       <KeyboardAvoidingView
         keyboardVerticalOffset={Header.HEIGHT + 20}
         behavior={Platform.OS === "ios" ? "padding" : "height"}

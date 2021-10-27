@@ -20,10 +20,17 @@ use App\Http\Controllers\Auth\RegisterController;
 //middleware(['web'])->
 //ROTAS PROTEGIDAS PELO CLIENT PASSPORT GRANT (SÓ ID E CLIENT_SECRET)
 //middleware(['client'])->
-Route::middleware(['client'])->namespace('Api')->name('api.')->group(function () {
+
+Route::get('/greeting', function () {
+    return 'Hello World';
+});
+//middleware(['client'])->
+
+Route::namespace('Api')->name('api.')->group(function () {
     
     Route::prefix('coleta')->group(function () {
-        Route::get('/coletaEmAbertoPorPlaca/{motorCod}/{placa}/{carreta}', 'ColetaController@coletaEmAbertoPorPlaca')->name('coletaEmAbertoPorPlaca'); 
+        Route::get('/coletaEmAbertoPorPlaca/{motorista}/{placa}/{carreta}', 'ColetaController@coletaEmAbertoPorPlaca')->name('coletaEmAbertoPorPlaca'); 
+        Route::get('/coletaEmAbertoPorPlacas/{placa}/{carreta}', 'ColetaController@coletaEmAbertoPorPlacas')->name('coletaEmAbertoPorPlacas'); 
         Route::get('/itensChale/{placa}/{carreta}', 'ColetaController@itensChale')->name('itensChale');
         Route::get('/volumeFornecedor/{placa}/{carreta}', 'ColetaController@volumeFornecedor')->name('volumeFornecedor');
         Route::get('/coletaEmAbertoChale/{placa}/{carreta}', 'ColetaController@coletaEmAbertoChale')->name('coletaEmAbertoChale');
@@ -37,8 +44,9 @@ Route::middleware(['client'])->namespace('Api')->name('api.')->group(function ()
         Route::get('/RetornaColetaPesagem/{coleta_veiculo}/{coleta_carreta}/{funcao}', 'ColetaController@RetornaColetaPesagem')->name('RetornaColetaPesagem');
         Route::get('/RetornaCoordenada/{coleta_veiculo}/{coleta_carreta}', 'ColetaController@RetornaCoordenada')->name('RetornaCoordenada');
         Route::get('/RetornaOcorrencia/{coleta_veiculo}/{coleta_carreta}', 'ColetaController@RetornaOcorrencia')->name('RetornaOcorrencia');
-        Route::get('/AtualizarVeiculo/{veiculo}/{transf}', 'ColetaController@AtualizarVeiculo')->name('AtualizarVeiculo');
+        Route::get('/AtualizarVeiculo/{placa}/{transf}', 'ColetaController@AtualizarVeiculo')->name('AtualizarVeiculo');
         Route::post('/NovaColeta', 'ColetaController@NovaColeta')->name('NovaColeta');
+        Route::post('/NovaColetaCommit', 'ColetaController@NovaColetaCommit')->name('NovaColetaCommit');
         Route::post('/NovaColetaItem', 'ColetaController@NovaColetaItem')->name('NovaColetaItem');
         Route::post('/coletaEmAbertoPorMotorista', 'ColetaController@coletaEmAbertoPorMotorista')->name('coletaEmAbertoPorMotorista');
         Route::post('/RemoverColeta', 'ColetaController@RemoverColeta')->name('RemoverColeta');

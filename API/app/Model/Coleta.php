@@ -36,9 +36,9 @@ class Coleta extends Model
         return $this->hasMany(Ocorrencia::class, 'coleta_id', 'id');
     }
     
-    public function AtualizarVeiculo($veiculo, $transf) {
+    public function AtualizarVeiculo($placa, $transf) {
         DB::table('Motorista_Coleta')
-            ->where('veiculo', $veiculo)
+            ->where('placa', $placa)
             ->update(['TRANSF' => $transf]);
     }
     
@@ -85,7 +85,7 @@ class Coleta extends Model
             ->where('coleta.placa', $placas[0])
             ->where('coleta_item.importado', 'false')
             ->where('coleta_item.tpfor', '<>', 'F')
-            ->whereIn('coleta.placa', ['MTC7995', 'AAH2297'])
+            ->whereIn('coleta.placa', ['ccc9999', 'BBB9999'])
             ->distinct()
             ->first();
         
@@ -96,7 +96,7 @@ class Coleta extends Model
             ->where('coleta.placa', $placas[1])
             ->where('coleta_item.importado', 'false')
             ->where('coleta_item.tpfor', '<>', 'F')
-            ->whereIn('coleta.placa', ['MTC7995', 'AAH2297'])
+            ->whereIn('coleta.placa', ['ccc9999', 'BBB9999'])
             ->distinct()
             ->first();
             

@@ -18,6 +18,8 @@ use App\Http\Requests\coletaEmAbertoPorVeiculo;
 use App\Http\Requests\RemoverColeta;
 use App\Http\Requests\NovaColetaItem;
 use App\Http\Requests\NovaColeta;
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\DB;
 
 class ColetaController extends Controller
 {
@@ -32,9 +34,9 @@ class ColetaController extends Controller
         return response()->json(0);
     }
     
-    public function AtualizarVeiculo($veiculo, $transf)
+    public function AtualizarVeiculo($placa, $transf)
     {
-        $veiculo = $this->coleta->AtualizarVeiculo($veiculo, $transf);
+        $veiculo = $this->coleta->AtualizarVeiculo($placa, $transf);
         return response()->json("Veiculo atualizado com sucesso!");
     }
 
@@ -172,7 +174,7 @@ class ColetaController extends Controller
         return response()->json($volumeResp);
     }
 
-     public function coletaEmAbertoPorPlaca($motorCod, $placa, $carreta)
+     public function coletaEmAbertoPorPlaca( $motorista, $placa, $carreta)
     {
         //{motorCod}/{placa}/{carreta} parametros da url
         $data = $this->coleta->ColetasPorPlacas([$placa, $carreta]);
@@ -187,6 +189,22 @@ class ColetaController extends Controller
         $coleta = ['coleta' => $coletas_id];
         return response()->json($coleta);
     }
+     public function coletaEmAbertoPorPlacas( $placa, $carreta)
+    {
+        //{motorCod}/{placa}/{carreta} parametros da url
+        $data = $this->coleta->ColetasPorPlacas([$placa, $carreta]);
+        $coletas_id = [];
+        //return $data;
+        foreach ($data as $coleta) {
+            if ($coleta) {
+                array_push($coletas_id, $coleta->id);
+            }
+             
+        }
+        $coleta = ['coleta' => $coletas_id];
+        return response()->json($coleta);
+    }
+    
     
      public function itensChale($placa, $carreta)
     {
@@ -252,6 +270,42 @@ class ColetaController extends Controller
             return $e;
         }
     }
+    
+    public function NovaColetaCommit(Request $request)
+    {
+        DB::beginTransaction();
+        
+        $coleta = [
+            'finalizada'            => '0',
+            'placa'                 => $request->placa,
+            'data'                  => $request->data,
+            'odometroI'             => $request->odometroI,
+            'odometroF'             => $request->odometroF,
+            'id_pesagem'            => '',
+        ];
+
+        try {
+            $nova_coleta = Coleta::create($coleta);
+            //adicionando o id da coleta no array dos itens
+            $itens = [];
+            foreach ($request->coletas as $item_coleta) {
+                $copy = $item_coleta;
+                $copy['id_coleta'] = $nova_coleta->id;
+                 //$copy['id_coleta'] = null;
+                array_push($itens, $copy);
+            }
+            foreach ($itens as $coleta) {
+                $coletaCreate = ItemColeta::create($coleta);
+            }
+            DB::commit();
+            return $nova_coleta;
+        } catch (QueryException $e) {
+            DB::rollBack();
+            return Response::json(['titulo' => 'Erro ao gerar coleta', 'msg' => 'Valores inválidos para criação da coleta!'], 400);
+        }
+    }
+    
+    
 
     public function RemoverColeta(RemoverColeta $request)
     {
@@ -396,6 +450,7 @@ class ColetaController extends Controller
                     $tpforEdit = $item->tpfor;
                 }
                 $formattedTemp = number_format($item->temperatura, 1);
+                $novaData = str_replace('-', '', $item->data);
                 $stringArquivo2 =  $stringArquivo2 .  "\n" .
                     $item->LINHA .
                     str_pad(trim($item->tanque), 6, '0', STR_PAD_LEFT) .
@@ -404,7 +459,8 @@ class ColetaController extends Controller
                     $novaHora .
                     str_pad(trim($formattedTemp), 4, '0', STR_PAD_LEFT) .
                     '1' .
-                    $tpforEdit;
+                    $tpforEdit .
+                    $novaData ;
             }
             
         }

@@ -20,6 +20,7 @@ import NetInfo from "@react-native-community/netinfo";
 import erroMessage from '../../functions/erroMessage';
 import { NativeModules } from 'react-native';
 import { Header } from '@react-navigation/stack';
+import PlacaAberta from '../../functions/placaAberta';
 
 const Finalizar = ({
   removerID,
@@ -28,7 +29,7 @@ const Finalizar = ({
   horaI,
   navigation,
   save_coleta,
-  adicionar_horaF }) => {
+  adicionar_horaF, veiculo }) => {
 
   const [loading, setLoading] = useState(false);
   const [odometro, setOdometro] = useState('');
@@ -292,7 +293,6 @@ const Finalizar = ({
 
   async function submeterColeta() {
 
-
     setTransmitindo(true);
     setLoading(true);
 
@@ -308,9 +308,39 @@ const Finalizar = ({
     novaColeta = {};
 
     try {
+      coletaRequest = await arquivoLocal("", data, veiculo.label, odometroI, odometroF);
+      if (coletaRequest.length > 0) {
+        const resp = await api.post('api/coleta/NovaColetaCommit', {
+          data: data,
+          placa: veiculo.label,
+          odometroI: odometroI,
+          odometroF: odometroF,
+          coletas: coletaRequest
+        })
+        await AsyncStorage.multiRemove(['@emAberto', '@coleta', '@linha', '@finalizado', '@veiculo']);
+        await AsyncStorage.setItem('@transmitir', 'false');
+        Alert.alert(
+          'Sucesso!',
+          'Coleta transmitida!',
+          [
+            { text: 'ok', onPress: () => sair() },
+          ]
+        );
+      } else {
+        await AsyncStorage.multiRemove(['@emAberto', '@coleta', '@linha', '@finalizado', '@veiculo']);
+        await AsyncStorage.setItem('@transmitir', 'false');
+        Alert.alert(
+          'Atenção!',
+          'Coleta vazia! O coletor será reiniciado!',
+          [
+            { text: 'ok', onPress: () => sair() },
+          ]
+        );
+      }
+
 
       //CRIA COLETA NORMALMENTE (TEM INTERNET, NENHUM ERRO)
-      const responseColeta = await api.post('api/coleta/NovaColeta', {
+      /*const responseColeta = await api.post('api/coleta/NovaColeta', {
         data: data,
         placa: veiculo.label,
         odometroI: odometroI,
@@ -319,27 +349,27 @@ const Finalizar = ({
 
       novaColeta = responseColeta.data;
       coletaRequest = await arquivoLocal(responseColeta.data.id, data, veiculo.label, odometroI, odometroF);
-      await api.post('api/coleta/NovaColetaItem', {
-        coletas: coletaRequest
-      })
-      await AsyncStorage.multiRemove(['@emAberto', '@coleta', '@linha', '@finalizado', '@veiculo']);
-      await AsyncStorage.setItem('@transmitir', 'false');
-      Alert.alert(
-        'Sucesso!',
-        'Coleta transmitida!',
-        [
-          { text: 'ok', onPress: () => sair() },
-        ]
-      );
+
+      if (coletaRequest.length == 0) {
+        await api.post('api/coleta/RemoverColeta', {
+          id_coleta: responseColeta.data.id
+        })
+      } else {
+        await api.post('api/coleta/NovaColetaItem', {
+          coletas: coletaRequest
+        })
+      }*/
+
+
     } catch (error) {
       //HOUVE UM ERRO DE CONEXÃO, NESSE CASO, GERA UM VALOR ALEATÓRIO DE ID DA COLETA
       //E EM SEGUIDA SERÃO GERADOS OS OBJETOS BASEADOS NESSE ID E O RESULTADO SERÁ SALVO PARA SUBMISSÃO MANUAL
       await arquivoLocal(9999, data, veiculo.label, odometroI, odometroF);
-      if (novaColeta.id) {
+      /*if (novaColeta.id) {
         await api.post('api/coleta/RemoverColeta', {
           id_coleta: novaColeta.id
         })
-      } 4
+      }*/
       Alert.alert(
         error.errors.codigo[0],
         error.message,
@@ -364,6 +394,7 @@ const Finalizar = ({
 
   return (
     <Container>
+      <PlacaAberta placa={veiculo.label} />
       <KeyboardAvoidingView
         keyboardVerticalOffset={Header.HEIGHT + 20}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -436,7 +467,8 @@ const mapStateToProps = state => ({
   imei: state.Identificacao.imei,
   data: state.Coleta.data,
   linhas: state.Coleta.linhas,
-  id_coleta: state.Coleta.id_coleta
+  id_coleta: state.Coleta.id_coleta,
+  veiculo: state.Identificacao.veiculo
 });
 
 const mapDispatchToProps = dispatch =>

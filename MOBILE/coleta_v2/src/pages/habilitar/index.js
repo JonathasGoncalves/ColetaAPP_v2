@@ -151,7 +151,7 @@ const Habilitar = ({ save_user }) => {
         error.errors.codigo[0],
         error.message,
         [
-          { text: 'ok', onPress: () => sairErro() },
+          { text: 'ok' },
         ]
       );
     }

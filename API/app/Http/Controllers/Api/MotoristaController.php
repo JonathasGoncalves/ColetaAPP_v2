@@ -35,7 +35,7 @@ class MotoristaController extends Controller
     //1=Nao;2=Sim
     public function verificarPlacaTransferencia(Request $request)
     {
-        $data = Motorista::where('PLACA', '=', $request->placa)->where('TRANSF', '2')->first();
+        $data = Motorista::where('PLACA', '=', $request->placa)->where('TRANSF', '1')->first();
         if (!$data) return Response::json(['titulo' => 'Placa Inválida', 'msg' => 'Esta placa não pode transferir leite!'], 422);
         $motorista = ['motorista' => $data];
         return response()->json($motorista);

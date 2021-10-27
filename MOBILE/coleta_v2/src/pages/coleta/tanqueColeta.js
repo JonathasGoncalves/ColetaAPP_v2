@@ -70,7 +70,6 @@ const TanqueColeta = ({ salvar_total_coletado, salvar_total_coletadoOff, id_linh
         setLongitude('00000000000');
       }
     } catch (error) {
-      console.log(error);
       Alert.alert(
         'Atenção!',
         'Não foi possivel capturar a localização!',

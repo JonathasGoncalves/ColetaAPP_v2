@@ -2,7 +2,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const api = axios.create({
-  baseURL: 'https://apicoletaleite.selita.coop.br/',
+  baseURL: 'http://apicoletaleite.selita.coop.br/',
   //baseURL: 'http://192.168.10.26:8000/',
   timeout: 10000,
   headers: {
@@ -66,7 +66,6 @@ api.interceptors.response.use(async function (response) {
   }*/
 
   errorJson = error.toJSON();
-  console.log(error.response.data)
   if (errorJson.message == 'Request failed with status code 401' && errorJson.config.url != 'oauth/token') {
     const clientID = await AsyncStorage.getItem('@Client');
     const clientSecret = await AsyncStorage.getItem('@Secret');
@@ -120,8 +119,6 @@ api.interceptors.response.use(async function (response) {
     };
   } else {
     codigo = error.response.data.titulo;
-    //console.log('error.response.data');
-    //console.log(error.response.data);
     erroResponse = {
       "errors": {
         codigo: [

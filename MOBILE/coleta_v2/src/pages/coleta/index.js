@@ -9,6 +9,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { calcularTotalColetado, calcularTotalColetadoPorTanque } from '../../functions/totalColeta';
 import { SearchBar } from 'react-native-elements';
+import PlacaAberta from '../../functions/placaAberta';
 
 const Coleta = ({
   coleta,
@@ -20,7 +21,8 @@ const Coleta = ({
   navigation,
   save_coleta,
   save_tanque,
-  tanqueAtual
+  tanqueAtual,
+  veiculo
 }) => {
 
   const [tanqueInput, setTanqueInput] = useState('');
@@ -263,6 +265,7 @@ const Coleta = ({
 
   return (
     <View style={{ flex: 1 }}>
+      <PlacaAberta placa={veiculo.label} />
       {coleta.length > 0 && coleta[id_linha].coleta.length > 0 ?
         (
           <View style={{ flex: 1, justifyContent: 'space-between' }}>
@@ -307,7 +310,8 @@ const mapStateToProps = state => ({
   data: state.Coleta.data,
   id_linha: state.Coleta.id_linha,
   totalColetado: state.Coleta.totalColetado,
-  totalColetadoOff: state.Coleta.totalColetadoOff
+  totalColetadoOff: state.Coleta.totalColetadoOff,
+  veiculo: state.Identificacao.veiculo
 });
 
 const mapDispatchToProps = dispatch =>

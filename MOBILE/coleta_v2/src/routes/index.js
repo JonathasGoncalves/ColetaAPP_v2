@@ -79,13 +79,14 @@ function Routes({
       //(/solicitar_acesso', /aprovar_solicitacao, /habilitar_aparelho),
       if (!access_token) {
         try {
-          const responseToken = await api.post('oauth/token', {
+          let obj = {
             grant_type: grant_type,
             client_id: clientID,
             client_secret: clientSecret,
             username: user_storage,
             password: password_storage
-          })
+          };
+          const responseToken = await api.post('oauth/token', obj)
           await AsyncStorage.setItem('@access_token', responseToken.data.access_token);
         } catch (error) {
           //SÓ VAI CAIR AQUI SE USER DO PASSWORD FOR DELETADO DO BANCO

@@ -8,6 +8,7 @@ import { Button } from 'native-base';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { calcularTotalColetado } from '../../functions/totalColeta';
+import PlacaAberta from '../../functions/placaAberta';
 
 const Linha = ({
   salvar_total_coletado,
@@ -19,7 +20,8 @@ const Linha = ({
   linhas,
   navigation,
   save_linha,
-  save_coleta
+  save_coleta,
+  veiculo
 }) => {
   const [linhasRender, setLinhas] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -127,6 +129,8 @@ const Linha = ({
   return (
     <View style={styles.viewMain}>
 
+      <PlacaAberta placa={veiculo.label} />
+
       {linhasRender.length > 0 ? (
         <View style={{ flex: 1, justifyContent: 'flex-start' }}>
           <View style={styles.viewMainFlatList}>
@@ -159,7 +163,8 @@ const mapStateToProps = state => ({
   coleta: state.Coleta.coleta,
   linhas: state.Coleta.linhas,
   totalColetado: state.Coleta.totalColetado,
-  totalColetadoOff: state.Coleta.totalColetadoOff
+  totalColetadoOff: state.Coleta.totalColetadoOff,
+  veiculo: state.Identificacao.veiculo
 });
 
 const mapDispatchToProps = dispatch =>
@@ -167,4 +172,5 @@ const mapDispatchToProps = dispatch =>
 
 export default connect(mapStateToProps, mapDispatchToProps)(Linha);
 
+//
 

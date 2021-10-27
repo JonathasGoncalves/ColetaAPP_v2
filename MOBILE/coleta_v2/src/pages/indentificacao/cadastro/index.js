@@ -200,6 +200,10 @@ const Cadastro = ({
     setOdometro(newText);
   }
 
+  function sairErro() {
+    setLoading(false);
+  }
+
   async function modal_select(option) {
     setPlaca(option.label);
     if (isMountedRef.current) {

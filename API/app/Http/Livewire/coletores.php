@@ -15,6 +15,7 @@ use Illuminate\Database\QueryException;
 class Coletores extends Component
 {
     public $coletores = [];
+    public $coletor = [];
     public $coletaAbertoObj;
 
     //INICIA O ARRAY DE SOLICITAÇÕES COM AS SOLICITAÇÕES EM ABERTO
@@ -26,8 +27,14 @@ class Coletores extends Component
 
     public function render()
     {
-      return view('livewire.coletores')
-            ->extends('layouts.coletores');
+      return view('livewire.main_coletor')
+            ->layout('layouts.coletores');
     }
 
+    public function abrir_coletor ($id_coletor) {
+        //$teste = $this->coletaAbertoObj->abrir_coletor($id_coletor);
+        //dd($teste);
+        $this->coletor = $this->coletaAbertoObj->abrir_coletor($id_coletor);
+    }
+    
 }
